@@ -36,7 +36,7 @@ public abstract class Mazebox implements Vertex{
 		return position;
 	}
 	public int label_calcul() {
-		return this.position_y*10+this.position_x;
+		return this.position_y*this.maze.getLength()+this.position_x;
 	}
 	public String getlabel() {
 		String label=Integer.toString(label_calcul());

@@ -3,15 +3,15 @@ import labyrinthe.*;
 import java.util.ArrayList;
 
 public class MainTest {
-	private static final int size = 100;
 	public static void main(String[] args) {
-		Maze maze = new Maze(size);
-		maze.initFromTextFile("data/labyrinthe.maze");
+		Maze maze = new Maze();
+		maze.initFromTextFile("../data/labyrinthe.maze");
 		DepartureBox depart = (DepartureBox) maze.getDepart();
 		System.out.println(String.format("the position of departure point is (%d,%d)",depart.getposition()[0],depart.getposition()[1]));
 		ArrivalBox arrive = (ArrivalBox) maze.getArrival();
 		System.out.println(String.format("the position of arrival point is (%d,%d)",arrive.getposition()[0],arrive.getposition()[1]));
 		System.out.println(depart.getlabel());
+		System.out.println(String.format("The length of the maze is %d, and the width of the maze is %d",maze.getLength(),maze.getWidth()));
 		Vertex departure=maze.getDepart();
 		Vertex arrival=maze.getArrival();
 		ShortestPathImpl shortestPath=new ShortestPathImpl();

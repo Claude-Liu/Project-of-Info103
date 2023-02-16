@@ -8,7 +8,7 @@ import graph.Vertex;
 import java.io.*;
 import utils.Pair;
 /**
- * 
+ * This is a class to describe a maze 
  * @author llf
  * @attribute boxlist, size
  * this maze is of size 10*10
@@ -16,22 +16,22 @@ import utils.Pair;
 public class Maze implements Graph{
 	//the shape of the labyrinthe is fixed, so we store the mazeboxs in a 1-d arraylist
 	private ArrayList<Mazebox> boxlist;
-	private int size;
+	private int length;
+	private int width;
 	private ArrayList<ArrayList<Pair<Integer,Integer>>> AL;
 	private DepartureBox depart;
 	private ArrivalBox arrival;
 	//inf means the distance is infini(not neighbour)
 	private final static int inf=100000;
 
-	public Maze (int size){
-		this.size=size;
+	public Maze (){
 		this.boxlist = new ArrayList<Mazebox>();
 	}
 
 	//we set the 2-d adjacence list here
 	public final void setMaze(ArrayList<Mazebox> boxlist) {
 		this.boxlist = boxlist;
-		this.size=boxlist.size();
+		int size=boxlist.size();
 		AL = new ArrayList<ArrayList<Pair<Integer,Integer>>>();
 		for(int i=0;i<size;i++) {
 			ArrayList<Pair<Integer,Integer>> voisins=new ArrayList<Pair<Integer,Integer>>();
@@ -50,9 +50,6 @@ public class Maze implements Graph{
 	}
 	
 	//setters
-	public void setsize(int size) {
-		this.size=size;
-	}
 	public void setAL(Mazebox src, Mazebox trg) {
 		int label1=Integer.valueOf(src.getlabel()).intValue();
 		int label2=Integer.valueOf(trg.getlabel()).intValue();
@@ -83,8 +80,11 @@ public class Maze implements Graph{
 	public Mazebox getbox(int i) {
 		return boxlist.get(i);
 	}
-	public int getsize() {
-		return size;
+	public int getWidth(){
+		return this.width;
+	}
+	public int getLength(){
+		return this.length;
 	}
 	public ArrayList<ArrayList<Pair<Integer,Integer>>> getAL(){
 		return AL;
@@ -145,17 +145,20 @@ public class Maze implements Graph{
 			FileReader rd = new FileReader(fileName);
 			BufferedReader br = new BufferedReader(rd);
 			String line = null;
+			int width=0;
 			while((line=br.readLine())!=null){
+				this.length=line.length();
 				boxlist_label=boxlist_label+line.strip();
+				System.out.println(line);
+				width+=1;
 			}
-			System.out.println(boxlist_label);
+			this.width=width;
 			br.close();
 		}
 		catch(IOException e){e.printStackTrace();}
-		assert (boxlist_label.length()!=100): "The size of the labyrinthe is not 10*10";
-		for (int i=0;i<100;i++){
-			int y = i/10;
-			int x = i-(10*y);
+		for (int i=0;i<boxlist_label.length();i++){
+			int y = i/this.length;
+			int x = i-(this.length*y);
 			char mode = boxlist_label.charAt(i);
 			Mazebox mazebox;
 			switch (mode){

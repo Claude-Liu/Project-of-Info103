@@ -1,7 +1,7 @@
 package graph;
 import java.util.HashMap;
 
-public class MinDistanceImpl {
+public class MinDistanceImpl implements MinDistance {
     private HashMap<Vertex,Integer> mindistances;
 
     public MinDistanceImpl(){

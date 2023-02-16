@@ -13,7 +13,7 @@ public class ShortestPathImpl implements ShortestPath{
         shortestpath.put(trg,src);
     }
     public ArrayList<Vertex> getPath(Vertex dep, Vertex arr){
-    	dep.print();
+    	//dep.print();
         ArrayList<Vertex> path=new ArrayList<Vertex>();
         path.add(arr);
         Vertex tmp=arr;
