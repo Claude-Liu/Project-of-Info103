@@ -1,9 +1,12 @@
 package labyrinthe;
 import java.util.ArrayList;
 import java.util.List;
+import java.awt.*;
+import javax.swing.event.*;
 
 import graph.Graph;
 import graph.Vertex;
+import graph.*;
 
 import java.io.*;
 import utils.Pair;
@@ -15,7 +18,7 @@ import utils.Pair;
  */
 public class Maze implements Graph{
 	//the shape of the labyrinthe is fixed, so we store the mazeboxs in a 1-d arraylist
-	private ArrayList<Mazebox> boxlist;
+	private ArrayList<Vertex> boxlist;
 	private int length;
 	private int width;
 	private ArrayList<ArrayList<Pair<Integer,Integer>>> AL;
@@ -25,12 +28,11 @@ public class Maze implements Graph{
 	private final static int inf=100000;
 
 	public Maze (){
-		this.boxlist = new ArrayList<Mazebox>();
+		this.boxlist = new ArrayList<Vertex>();
 	}
 
 	//we set the 2-d adjacence list here
-	public final void setMaze(ArrayList<Mazebox> boxlist) {
-		this.boxlist = boxlist;
+	public final void setMaze() {
 		int size=boxlist.size();
 		AL = new ArrayList<ArrayList<Pair<Integer,Integer>>>();
 		for(int i=0;i<size;i++) {
@@ -48,7 +50,19 @@ public class Maze implements Graph{
 			AL.add(voisins);
 		}
 	}
-	
+	//MVC
+	private ArrayList<ChangeListener> listeners = new ArrayList<ChangeListener>() ;
+
+	public void addObserver(ChangeListener listener) {
+		listeners.add(listener) ;
+	}
+
+	public void stateChanges() {
+		ChangeEvent evt = new ChangeEvent(this) ;
+		for (ChangeListener listener : listeners) {
+			listener.stateChanged(evt);
+		}
+	}
 	//setters
 	public void setAL(Mazebox src, Mazebox trg) {
 		int label1=Integer.valueOf(src.getlabel()).intValue();
@@ -56,44 +70,60 @@ public class Maze implements Graph{
 		Pair<Integer,Integer> pair = new Pair<Integer,Integer>(label1,label2);
 		AL.get(label1).add(pair);
 	}
-	public void setDepart(){
+	public void setDepart() throws Exception{
 		int flag=0;
-		for (Mazebox box: boxlist){
+		for (Vertex box: boxlist){
 			if (box.gettype().equals("depart")){
-				flag=1;
+				flag+=1;
 				this.depart = (DepartureBox)box;;
 			}
 		}
-		assert(flag==1):"There is no departure in the labytinthe";
+		System.out.println("100");
+		if (flag==0){throw new Exception("There is no departure in the labytinthe");}
+		if (flag>=2){throw new Exception("There are more than one departures in the labytinthe");}
+		System.out.println("200");
 	}
-	public void setArrival(){
+	public Vertex getDepart(){
+		return this.depart;
+	}
+	public void setArrival() throws Exception{
 		int flag=0;
-		for (Mazebox box: boxlist){
+		for (Vertex box: boxlist){
 			if (box.gettype().equals("arrive")){
-				flag=1;
+				flag++;
 				this.arrival = (ArrivalBox)box;
 			}
 		}
-		assert(flag==1):"There is no arrival in the labytinthe";
+		if (flag==0){throw new Exception("There is no arrival in the labytinthe");}
+		if (flag>=2){throw new Exception("There are more than one arrivals in the labytinthe");}
+	}
+	public Vertex getArrival(){
+		return this.arrival;
+	}
+	public void setBox (int i, Vertex mazebox) throws Exception{
+		this.boxlist.set(i,mazebox);
+		setMaze();
+		setDepart();
+		setArrival();
 	}
 	// getters
-	public Mazebox getbox(int i) {
+	public Vertex getbox(int i) {
 		return boxlist.get(i);
+	}
+	public void setWidth(int width){
+		this.width=width;
 	}
 	public int getWidth(){
 		return this.width;
+	}
+	public void setLength(int length){
+		this.length=length;
 	}
 	public int getLength(){
 		return this.length;
 	}
 	public ArrayList<ArrayList<Pair<Integer,Integer>>> getAL(){
 		return AL;
-	}
-	public Vertex getDepart(){
-		return this.depart;
-	}
-	public Vertex getArrival(){
-		return this.arrival;
 	}
 	public void printPath(List<Vertex> path){
 		for(Vertex vertex:path){
@@ -102,7 +132,7 @@ public class Maze implements Graph{
 	}
 	public List<Vertex> getAllVertexes(){
 		ArrayList<Vertex> vertexlist = new ArrayList<Vertex>();
-		for(Mazebox box: boxlist) {
+		for(Vertex box: boxlist) {
 			vertexlist.add(box);
 		}
 		return vertexlist;
@@ -139,7 +169,7 @@ public class Maze implements Graph{
 	}
 
 	//We get the boxlist and set the AL in this fonction
-	public final void initFromTextFile(String fileName){
+	public final void initFromTextFile(String fileName) throws Exception{
 		String boxlist_label = "";
 		try{
 			FileReader rd = new FileReader(fileName);
@@ -147,7 +177,7 @@ public class Maze implements Graph{
 			String line = null;
 			int width=0;
 			while((line=br.readLine())!=null){
-				this.length=line.length();
+				setLength(line.length());
 				boxlist_label=boxlist_label+line.strip();
 				System.out.println(line);
 				width+=1;
@@ -178,10 +208,21 @@ public class Maze implements Graph{
 					mazebox = new EmptyBox(this, x, y);
 			}
 			boxlist.add(mazebox);
-			setMaze(boxlist);
-			setDepart();
-			setArrival();
 		}
+		setMaze();
+		setDepart();
+		setArrival();
+		stateChanges();
+	}
+	//call the dijkstra
+	private ArrayList<Vertex> shortestPath;
+	public void searchShortestPath(){
+		ShortestPathImpl shortestPath_=(ShortestPathImpl) Dijkstra.dijkstra(this,this.depart,this.arrival);
+		shortestPath= shortestPath_.getPath(depart,arrival);
+		stateChanges();
+	}
+	public ArrayList<Vertex> getShortestPath(){
+		return this.shortestPath;
 	}
 	public final void saveToTextFile(String fileName){
 

@@ -3,3 +3,8 @@
 /MinDistance.class
 /ShortestPath.class
 /Vertex.class
+/Dijkstra.class
+/MinDistanceImpl.class
+/ProcessedVertexes.class
+/ProcessedVertexesImpl.class
+/ShortestPathImpl.class

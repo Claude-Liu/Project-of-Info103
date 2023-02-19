@@ -4,4 +4,5 @@ public interface Vertex {
 	public String getlabel();
 	public boolean equals(Vertex vertex);
 	public void print();
+	public String gettype();
 }

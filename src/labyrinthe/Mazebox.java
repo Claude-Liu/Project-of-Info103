@@ -15,6 +15,7 @@ public abstract class Mazebox implements Vertex{
 		this.maze=maze;
 		this.type="normal";
 	}
+	 
 	public void print(){
 		System.out.println(String.format("the position of the point is (%d,%d)",this.getposition()[0],this.getposition()[1]));
 	}
