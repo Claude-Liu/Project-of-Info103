@@ -12,7 +12,7 @@ public class AnswerIndicator extends JButton implements ActionListener{
     }
     public final void actionPerformed(ActionEvent evt)
 	{
-        mazeApp.setShowAnswer(true);;
-		mazeApp.getMaze().searchShortestPath();
+        mazeApp.switchShowAnswer();
+        if (mazeApp.getShowAnswer()==true) mazeApp.getMaze().searchShortestPath();
 	}
 }

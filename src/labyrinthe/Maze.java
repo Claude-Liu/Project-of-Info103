@@ -2,6 +2,7 @@ package labyrinthe;
 import java.util.ArrayList;
 import java.util.List;
 import java.awt.*;
+
 import javax.swing.event.*;
 
 import graph.Graph;
@@ -19,11 +20,11 @@ import utils.Pair;
 public class Maze implements Graph{
 	//the shape of the labyrinthe is fixed, so we store the mazeboxs in a 1-d arraylist
 	private ArrayList<Vertex> boxlist;
-	private int length;
-	private int width;
+	private int length; //the horizontal size of the maze
+	private int width; //the vertical size of the maze
 	private ArrayList<ArrayList<Pair<Integer,Integer>>> AL;
-	private DepartureBox depart;
-	private ArrivalBox arrival;
+	private DepartureBox depart=null;
+	private ArrivalBox arrival=null;
 	//inf means the distance is infini(not neighbour)
 	private final static int inf=100000;
 
@@ -52,6 +53,12 @@ public class Maze implements Graph{
 	}
 	//MVC
 	private ArrayList<ChangeListener> listeners = new ArrayList<ChangeListener>() ;
+	private final int marginX = 20;
+    private final int marginY = 20;
+	private int radius;
+	private ArrayList<Pair<Polygon,Vertex>> mazeMap;
+	//-1 means there is no seleceted hexagon
+	private int selectedHexagonIndice=-1;
 
 	public void addObserver(ChangeListener listener) {
 		listeners.add(listener) ;
@@ -63,15 +70,67 @@ public class Maze implements Graph{
 			listener.stateChanged(evt);
 		}
 	}
-	//setters
-	public void setAL(Mazebox src, Mazebox trg) {
-		int label1=Integer.valueOf(src.getlabel()).intValue();
-		int label2=Integer.valueOf(trg.getlabel()).intValue();
-		Pair<Integer,Integer> pair = new Pair<Integer,Integer>(label1,label2);
-		AL.get(label1).add(pair);
+	public void setSelectedHexagon(int x, int y){
+		int indice=0;
+		int flag=0;
+		for (Pair<Polygon,Vertex> mazeElement:mazeMap){
+			Polygon hexagon = mazeElement.getKey();
+			if (hexagon.contains((double)x, (double)y)) {
+				this.selectedHexagonIndice=indice;
+				flag=1;
+				break;}
+			indice++;
+		}
+		if (flag==0) selectedHexagonIndice=-1;
+		stateChanges();
 	}
+	public int getSelectedHexagonIndice(){
+		return this.selectedHexagonIndice;
+	}
+
+	public void setRadius(int radius){
+		this.radius=radius;
+		//stateChanges();
+	}
+	public int getRadius(){
+		return this.radius;
+	}
+	public Polygon getHexagon(Mazebox box){
+		int centerX = 0;
+		if (box.getposition()[1]%2==0){centerX=(int)((1+2*box.getposition()[0])*Math.cos(Math.PI/6)*this.radius)+marginX;}
+		else{centerX=(int)((2+2*box.getposition()[0])*Math.cos(Math.PI/6)*this.radius)+marginX;}
+		int centerY = (int)(this.radius*(1+(Math.sin(Math.PI/6))*3*box.getposition()[1]))+marginY;
+		Polygon hexagon = new Polygon();
+        hexagon.addPoint(centerX,centerY+radius);
+        hexagon.addPoint((int)(centerX+radius*Math.cos(Math.PI/6)),(int)(centerY+radius*Math.sin(Math.PI/6)));
+        hexagon.addPoint((int)(centerX+radius*Math.cos(Math.PI/6)),(int)(centerY-radius*Math.sin(Math.PI/6)));
+        hexagon.addPoint(centerX,centerY-radius);
+        hexagon.addPoint((int)(centerX-radius*Math.cos(Math.PI/6)),(int)(centerY-radius*Math.sin(Math.PI/6)));
+        hexagon.addPoint((int)(centerX-radius*Math.cos(Math.PI/6)),(int)(centerY+radius*Math.sin(Math.PI/6)));
+		return hexagon;
+	}
+	public void setMazeMap(){
+		mazeMap = new ArrayList<Pair<Polygon,Vertex>>();
+		for(Vertex box_: boxlist){
+			Mazebox box = (Mazebox) box_;
+			mazeMap.add(new Pair<Polygon,Vertex>(getHexagon(box),box));
+		}
+	}
+	public ArrayList<Pair<Polygon,Vertex>> getMazeMap(){
+		return this.mazeMap;
+	}
+	public ArrayList<Pair<Polygon,Vertex>> path2Hexagons(ArrayList<Vertex> path){
+		ArrayList<Pair<Polygon,Vertex>> hexagons = new ArrayList<Pair<Polygon,Vertex>>();
+		for(Vertex box_: path){
+			Mazebox box = (Mazebox) box_;
+			hexagons.add(new Pair<Polygon,Vertex>(getHexagon(box),box));
+		}
+		return hexagons;
+	}
+	//setters
 	public void setDepart() throws Exception{
 		int flag=0;
+		depart=null;
 		for (Vertex box: boxlist){
 			if (box.gettype().equals("depart")){
 				flag+=1;
@@ -79,28 +138,54 @@ public class Maze implements Graph{
 			}
 		}
 		System.out.println("100");
-		if (flag==0){throw new Exception("There is no departure in the labytinthe");}
+		if (flag==0){System.out.println("There is no departure in the labytinthe");}
 		if (flag>=2){throw new Exception("There are more than one departures in the labytinthe");}
 		System.out.println("200");
+		stateChanges();
 	}
 	public Vertex getDepart(){
 		return this.depart;
 	}
 	public void setArrival() throws Exception{
 		int flag=0;
+		arrival=null;
 		for (Vertex box: boxlist){
 			if (box.gettype().equals("arrive")){
 				flag++;
 				this.arrival = (ArrivalBox)box;
 			}
 		}
-		if (flag==0){throw new Exception("There is no arrival in the labytinthe");}
+		if (flag==0){System.out.println("There is no arrival in the labytinthe");}
 		if (flag>=2){throw new Exception("There are more than one arrivals in the labytinthe");}
+		stateChanges();
 	}
 	public Vertex getArrival(){
 		return this.arrival;
 	}
-	public void setBox (int i, Vertex mazebox) throws Exception{
+	/*we do not need to call stateChanges() here, 
+	because it is already called in fonction setDepart and serArrival
+	which are called in this fonction.
+	*/
+	public void changeBox (int i, char boxType) throws Exception{
+		int x=((Mazebox)(boxlist.get(i))).getposition()[0];
+		int y=((Mazebox)(boxlist.get(i))).getposition()[1];
+		Mazebox mazebox;
+			switch (boxType){
+				case 'E':
+					mazebox = new EmptyBox(this,x,y);
+					break;
+				case 'W':
+					mazebox = new WallBox(this,x,y);
+					break;
+				case 'A':
+					mazebox = new ArrivalBox(this, x, y);
+					break;
+				case 'D':
+					mazebox = new DepartureBox(this, x, y);
+					break;
+				default:
+					mazebox = new EmptyBox(this, x, y);
+			}
 		this.boxlist.set(i,mazebox);
 		setMaze();
 		setDepart();
@@ -163,7 +248,10 @@ public class Maze implements Graph{
 			if (trgx==srcx-1 | trgx==srcx+1){distance=1;}
 		}
 		if (trgy==srcy-1 | trgy==srcy+1){
-			if (trgx==srcx | trgx==srcx+1){distance=1;}
+			if(srcy%2==0){
+				if (trgx==srcx | trgx==srcx-1){distance=1;}}
+			if(srcy%2==1){
+				if (trgx==srcx | trgx==srcx+1){distance=1;}}
 		}
 		return distance;
 	}
@@ -186,6 +274,8 @@ public class Maze implements Graph{
 			br.close();
 		}
 		catch(IOException e){e.printStackTrace();}
+		//initialize the boxlist
+		boxlist=new ArrayList<Vertex>();
 		for (int i=0;i<boxlist_label.length();i++){
 			int y = i/this.length;
 			int x = i-(this.length*y);
@@ -212,6 +302,7 @@ public class Maze implements Graph{
 		setMaze();
 		setDepart();
 		setArrival();
+		setMazeMap();
 		stateChanges();
 	}
 	//call the dijkstra
@@ -225,8 +316,35 @@ public class Maze implements Graph{
 		return this.shortestPath;
 	}
 	public final void saveToTextFile(String fileName){
-
+		try{
+			FileOutputStream fos = new FileOutputStream(fileName);
+			PrintWriter pw = new PrintWriter(fos);
+			String mazeRaw = "";
+			for (Vertex box_: boxlist){
+				Mazebox box = (Mazebox) box_;
+				String type = box.gettype();
+				boolean pass = box.getpass();
+				if (type=="depart"){
+					mazeRaw+="D";
+				}
+				else if(type=="arrive"){
+					mazeRaw+="A";
+				}
+				else{
+					if (pass){
+						mazeRaw+="E";
+					}
+					else{
+						mazeRaw+="W";
+					}
+				}
+				if (mazeRaw.length()==length){
+					pw.println(mazeRaw);
+					mazeRaw="";
+				}
+			}
+			pw.close();
+		}
+		catch(IOException ex){ex.printStackTrace();}
 	}
-
-	
 }

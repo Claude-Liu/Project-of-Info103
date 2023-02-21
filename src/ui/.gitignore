@@ -11,3 +11,9 @@
 /MazeboxChooser.class
 /MazeInitializer.class
 /AnswerIndicator.class
+/MazeAppMouseListener.class
+/WallboxChooser.class
+/EmptyboxChooser.class
+/DepartChooser.class
+/ArrivalChooser.class
+/MazeSaver.class
