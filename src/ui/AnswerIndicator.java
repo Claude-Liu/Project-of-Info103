@@ -6,7 +6,8 @@ public class AnswerIndicator extends JButton implements ActionListener{
     private final MazeApp mazeApp;
 
     public AnswerIndicator(MazeApp mazeApp){
-        super("Answer");
+        super("'s Answer");
+        this.setIcon(new ImageIcon("../data/IconRat.png"));
         this.mazeApp=mazeApp;
         addActionListener(this);
     }

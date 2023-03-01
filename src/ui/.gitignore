@@ -17,3 +17,5 @@
 /DepartChooser.class
 /ArrivalChooser.class
 /MazeSaver.class
+/MazeLoader.class
+/MazeCreator.class

@@ -17,6 +17,14 @@ public class MazeApp extends JFrame implements ChangeListener {
 
     private final MazeMenuBar mazeMenuBar ;
     private final WindowPanel  windowPanel ;
+	private String currentPath;
+
+	public String getCurrentPath(){
+		return this.currentPath;
+	}
+	public void setCurrentPath(String path){
+		this.currentPath=path;
+	}
 	
 	private Maze maze = new Maze();
     private boolean showAnswer = false;

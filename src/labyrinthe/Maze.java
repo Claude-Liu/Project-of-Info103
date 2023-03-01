@@ -59,12 +59,19 @@ public class Maze implements Graph{
 	private ArrayList<Pair<Polygon,Vertex>> mazeMap;
 	//-1 means there is no seleceted hexagon
 	private int selectedHexagonIndice=-1;
+	private boolean isModified=false;
 
 	public void addObserver(ChangeListener listener) {
 		listeners.add(listener) ;
 	}
-
+	public boolean isModified(){
+		return isModified;
+	}
+	public void setModified(){
+		this.isModified=true;
+	}
 	public void stateChanges() {
+		setModified();
 		ChangeEvent evt = new ChangeEvent(this) ;
 		for (ChangeListener listener : listeners) {
 			listener.stateChanged(evt);
